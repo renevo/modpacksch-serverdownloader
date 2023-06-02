@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/cavaliergopher/grab/v3"
 	"io"
 	"log"
 	"net/http"
@@ -20,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cavaliergopher/grab/v3"
 )
 
 var client = &http.Client{}
@@ -50,6 +51,7 @@ var Options struct {
 	Verbose         bool   `help:"Be a bit noisier on actions taken. Default: false"`
 	Latest          bool   `help:"Install latest, ignoring any version in the file name or arguments. Default: false"`
 	Curseforge      bool   `help:"Specifies that pack is a Curseforge modpack"`
+	Localpack       string `help:"Path to a local mod pack"`
 	Help            bool   `help:"This help"`
 }
 
@@ -75,6 +77,7 @@ func main() {
 	Options.Integrity = true
 	Options.Latest = false
 	Options.Curseforge = false
+	Options.Localpack = ""
 
 	Options.Help = false
 
@@ -153,6 +156,11 @@ func main() {
 
 	if Options.Latest {
 		versionFound = -2
+	}
+
+	if Options.Localpack != "" {
+		HandleLocalPack(Options.Localpack, Options.Path)
+		os.Exit(0)
 	}
 
 	fmt.Println(fmt.Sprintf("Server installer version %s commit %s", verStr, commitStr))
@@ -448,7 +456,7 @@ Loop:
 		succeeded,
 		failed,
 		inProgress,
-		)
+	)
 
 	if failed > 0 {
 		if !QuestionYN(true, "Some downloads failed. Would you like to continue anyway?") {
